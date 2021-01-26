@@ -12,13 +12,14 @@ func main() {
 	contextPath := mux.NewRouter().StrictSlash(true)
 	router := contextPath.PathPrefix("/urlshort").Subrouter()
 
-	router.HandleFunc("/hello/{name}", getHelloWorld).Methods(http.MethodGet)
+	router.HandleFunc("/hello/{name}", GetHelloWorld).Methods(http.MethodGet)
 
 	log.Printf("[main] Server started at %s:%s", "0.0.0.0", "5000")
 	log.Fatal(http.ListenAndServe("0.0.0.0:5000", router))
 }
 
-func getHelloWorld(w http.ResponseWriter, r *http.Request) {
+// GetHelloWorld Return greeting based on name and language given
+func GetHelloWorld(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["name"]
 
@@ -37,6 +38,8 @@ func getHelloWorld(w http.ResponseWriter, r *http.Request) {
 		value = "Hello, "
 		break
 	}
+
+	log.Println("name", name)
 
 	nameMap := map[string]interface{}{
 		"value": value + name,
