@@ -14,3 +14,4 @@ services:
     command: sleep infinity
     volumes:
       - ./:/workspace
+      - ./go-docker:/go

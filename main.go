@@ -39,13 +39,11 @@ func GetHelloWorld(w http.ResponseWriter, r *http.Request) {
 		break
 	}
 
-	log.Println("name", name)
-
-	nameMap := map[string]interface{}{
+	data := map[string]interface{}{
 		"value": value + name,
 	}
 
-	sendResponse(w, http.StatusOK, nameMap, true, "Response returned successfully.")
+	sendResponse(w, http.StatusOK, data, true, "Response returned successfully.")
 }
 
 func sendResponse(w http.ResponseWriter, statusCode int, data map[string]interface{}, isSuccess bool, message string) {
