@@ -81,14 +81,14 @@ func sendResponse(w http.ResponseWriter, statusCode int, data map[string]interfa
 }
 
 func getMongoConnection() *mongo.Client {
-	client, err := mongo.NewClient(options.Client().ApplyURI(os.Getenv("MONGO_CONNECTION_STRING")))
-	if err != nil {
-		log.Fatalf("Mongo client failed! %v", err)
-	}
-
-	err = client.Connect(context.TODO())
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(os.Getenv("MONGO_CONNECTION_STRING")))
 	if err != nil {
 		log.Fatalf("Mongo client connection failed! %v", err)
+	}
+
+	err = client.Ping(context.TODO(), nil)
+	if err != nil {
+		log.Fatalf("Mongo client ping failed! %v", err)
 	}
 
 	return client

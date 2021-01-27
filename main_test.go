@@ -32,12 +32,7 @@ func TestGetEnvVar(t *testing.T) {
 }
 
 func TestPingMongoClient(t *testing.T) {
-	client, err := mongo.NewClient(options.Client().ApplyURI(os.Getenv("MONGO_CONNECTION_STRING")))
-	if err != nil {
-		t.Errorf("Mongo client failed! %v", err)
-	}
-
-	err = client.Connect(context.TODO())
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(os.Getenv("MONGO_CONNECTION_STRING")))
 	if err != nil {
 		t.Errorf("Mongo client connection failed! %v", err)
 	}
