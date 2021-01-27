@@ -12,6 +12,7 @@ services:
         INSTALL_NODE: "false"
         NODE_VERSION: "lts/*"
     command: sleep infinity
+    env_file: .env
     volumes:
       - ./:/workspace
       - ./go-docker:/go
