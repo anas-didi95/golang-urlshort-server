@@ -69,7 +69,22 @@ func GetHelloWorld(w http.ResponseWriter, r *http.Request) {
 
 // PostGenerateShortURL Generate and return short url
 func PostGenerateShortURL(w http.ResponseWriter, r *http.Request) {
-	log.Print("PostGenerateShortURL")
+	TAG := "PostGenerateShortURL"
+
+	var requestBody struct {
+		URL string `json:"url"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	if err != nil {
+		log.Fatalf("[%s] Read request body failed! %v", TAG, err)
+		sendResponse(w, http.StatusInternalServerError, nil, false, "Read request body failed!")
+		return
+	}
+
+	responseBody := map[string]interface{}{
+		"url": requestBody.URL,
+	}
+	sendResponse(w, http.StatusOK, responseBody, true, "Endpoint reached.")
 }
 
 func sendResponse(w http.ResponseWriter, statusCode int, data map[string]interface{}, isSuccess bool, message string) {

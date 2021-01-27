@@ -90,7 +90,6 @@ func TestGetHelloWorld(t *testing.T) {
 }
 
 func TestPostGenerateShortURL(t *testing.T) {
-	t.Log("asdfasf")
 	requestBody := map[string]string{
 		"url": "https://www.google.com",
 	}
