@@ -86,10 +86,5 @@ func getMongoConnection() *mongo.Client {
 		log.Fatalf("Mongo client connection failed! %v", err)
 	}
 
-	err = client.Ping(context.TODO(), nil)
-	if err != nil {
-		log.Fatalf("Mongo client ping failed! %v", err)
-	}
-
 	return client
 }
