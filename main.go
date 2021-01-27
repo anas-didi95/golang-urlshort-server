@@ -12,10 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var clientOptions *options.ClientOptions
-
 func main() {
-	clientOptions = options.Client().ApplyURI(os.Getenv("MONGO_CONNECTION_STRING"))
 	contextPath := mux.NewRouter().StrictSlash(true)
 	router := contextPath.PathPrefix("/urlshort").Subrouter()
 
