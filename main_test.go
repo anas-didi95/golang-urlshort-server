@@ -21,6 +21,11 @@ func TestGetEnvVar(t *testing.T) {
 	if len(AppPort) == 0 {
 		t.Errorf("Env var not defined! key %s", "APP_PORT")
 	}
+
+	MongoConnectionString := os.Getenv("MONGO_CONNECTION_STRING")
+	if len(MongoConnectionString) == 0 {
+		t.Errorf("Env var not defined! key %s", "MONGO_CONNECTION_STRING")
+	}
 }
 
 func TestGetHelloWorld(t *testing.T) {
