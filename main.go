@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 )
@@ -14,8 +15,10 @@ func main() {
 
 	router.HandleFunc("/hello/{name}", GetHelloWorld).Methods(http.MethodGet)
 
-	log.Printf("[main] Server started at %s:%s", "0.0.0.0", "5000")
-	log.Fatal(http.ListenAndServe("0.0.0.0:5000", router))
+	AppHost := os.Getenv("APP_HOST")
+	AppPort := os.Getenv("APP_PORT")
+	log.Printf("[main] Server started at %s:%s", AppHost, AppPort)
+	log.Fatal(http.ListenAndServe(AppHost+":"+AppPort, router))
 }
 
 // GetHelloWorld Return greeting based on name and language given
