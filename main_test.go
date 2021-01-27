@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -86,5 +87,45 @@ func TestGetHelloWorld(t *testing.T) {
 		t.Errorf("handler returned unexpected body: got %v want %v",
 			assertedResponseBody, string(expectedResponseBody))
 	}
+}
 
+func TestPostGenerateShortURL(t *testing.T) {
+	t.Log("asdfasf")
+	requestBody := map[string]string{
+		"url": "https://www.google.com",
+	}
+	var buf bytes.Buffer
+	json.NewEncoder(&buf).Encode(requestBody)
+
+	req, err := http.NewRequest(http.MethodPost, "/urlshort/generate", &buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	router := mux.NewRouter()
+	router.HandleFunc("/urlshort/generate", PostGenerateShortURL)
+	router.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	responseBody := map[string]interface{}{
+		"status": map[string]interface{}{
+			"isSuccess": true,
+			"message":   "Endpoint reached.",
+		},
+		"data": map[string]interface{}{
+			"url": "https://www.google.com",
+		},
+	}
+	expectedResponseBody, err := json.Marshal(responseBody)
+	assertedResponseBody := strings.Trim(rr.Body.String(), "\n")
+
+	if assertedResponseBody != string(expectedResponseBody) {
+		t.Errorf("handler returned unexpected body: got %v want %v",
+			assertedResponseBody, string(expectedResponseBody))
+	}
 }

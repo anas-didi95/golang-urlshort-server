@@ -17,6 +17,7 @@ func main() {
 	router := contextPath.PathPrefix("/urlshort").Subrouter()
 
 	router.HandleFunc("/hello/{name}", GetHelloWorld).Methods(http.MethodGet)
+	router.HandleFunc("/generate", PostGenerateShortURL).Methods(http.MethodPost)
 
 	AppHost := os.Getenv("APP_HOST")
 	AppPort := os.Getenv("APP_PORT")
@@ -64,6 +65,11 @@ func GetHelloWorld(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sendResponse(w, http.StatusOK, data, true, "Response returned successfully.")
+}
+
+// PostGenerateShortURL Generate and return short url
+func PostGenerateShortURL(w http.ResponseWriter, r *http.Request) {
+	log.Print("PostGenerateShortURL")
 }
 
 func sendResponse(w http.ResponseWriter, statusCode int, data map[string]interface{}, isSuccess bool, message string) {
