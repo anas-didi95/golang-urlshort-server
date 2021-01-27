@@ -2,7 +2,18 @@
 
 ###
 
-// @name getHelloWorld
+// @name GetHelloWorld
 GET {{baseUrl}}/hello/anas?lang=bm
 Accept: application/json
 Content-Type: application/json
+
+###
+
+// @name PostGenerateShortURL
+POST {{baseUrl}}/generate
+Accept: application/json
+Content-Type: application/json
+
+{
+  "url": "https://anasdidi.dev"
+}
