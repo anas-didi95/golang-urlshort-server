@@ -40,6 +40,7 @@ func GetHelloWorld(w http.ResponseWriter, r *http.Request) {
 	switch lang {
 	case "bm":
 		value = "Selamat sejahtera, "
+		break
 	default:
 		value = "Hello, "
 		break
