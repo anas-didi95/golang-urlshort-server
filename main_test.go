@@ -4,11 +4,24 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
 )
+
+func TestGetEnvVar(t *testing.T) {
+	AppHost := os.Getenv("APP_HOST")
+	if len(AppHost) == 0 {
+		t.Errorf("Env var not defined! key %s", "APP_HOST")
+	}
+
+	AppPort := os.Getenv("APP_PORT")
+	if len(AppPort) == 0 {
+		t.Errorf("Env var not defined! key %s", "APP_PORT")
+	}
+}
 
 func TestGetHelloWorld(t *testing.T) {
 	// Create a request to pass to our handler. We don't have any query parameters for now, so we'll
