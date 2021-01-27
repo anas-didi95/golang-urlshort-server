@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
@@ -37,13 +40,27 @@ func GetHelloWorld(w http.ResponseWriter, r *http.Request) {
 	switch lang {
 	case "bm":
 		value = "Selamat sejahtera, "
+		break
 	default:
 		value = "Hello, "
 		break
 	}
 
+	client := getMongoConnection()
+	err := client.Ping(context.TODO(), nil)
+	defer client.Disconnect(context.TODO())
+
+	var mongoStatus string
+	if err != nil {
+		log.Fatal(err)
+		mongoStatus = "Offline"
+	} else {
+		mongoStatus = "Online"
+	}
+
 	data := map[string]interface{}{
 		"value": value + name,
+		"mongo": mongoStatus,
 	}
 
 	sendResponse(w, http.StatusOK, data, true, "Response returned successfully.")
@@ -62,4 +79,13 @@ func sendResponse(w http.ResponseWriter, statusCode int, data map[string]interfa
 	}
 
 	json.NewEncoder(w).Encode(responseBody)
+}
+
+func getMongoConnection() *mongo.Client {
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(os.Getenv("MONGO_CONNECTION_STRING")))
+	if err != nil {
+		log.Fatalf("Mongo client connection failed! %v", err)
+	}
+
+	return client
 }
