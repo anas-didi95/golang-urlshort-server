@@ -1,15 +1,21 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+var clientOptions *options.ClientOptions
+
 func main() {
+	clientOptions = options.Client().ApplyURI(os.Getenv("MONGO_CONNECTION_STRING"))
 	contextPath := mux.NewRouter().StrictSlash(true)
 	router := contextPath.PathPrefix("/urlshort").Subrouter()
 
@@ -42,8 +48,21 @@ func GetHelloWorld(w http.ResponseWriter, r *http.Request) {
 		break
 	}
 
+	client := getMongoConnection()
+	err := client.Ping(context.TODO(), nil)
+	defer client.Disconnect(context.TODO())
+
+	var mongoStatus string
+	if err != nil {
+		log.Fatal(err)
+		mongoStatus = "Offline"
+	} else {
+		mongoStatus = "Online"
+	}
+
 	data := map[string]interface{}{
 		"value": value + name,
+		"mongo": mongoStatus,
 	}
 
 	sendResponse(w, http.StatusOK, data, true, "Response returned successfully.")
@@ -62,4 +81,18 @@ func sendResponse(w http.ResponseWriter, statusCode int, data map[string]interfa
 	}
 
 	json.NewEncoder(w).Encode(responseBody)
+}
+
+func getMongoConnection() *mongo.Client {
+	client, err := mongo.NewClient(options.Client().ApplyURI(os.Getenv("MONGO_CONNECTION_STRING")))
+	if err != nil {
+		log.Fatalf("Mongo client failed! %v", err)
+	}
+
+	err = client.Connect(context.TODO())
+	if err != nil {
+		log.Fatalf("Mongo client connection failed! %v", err)
+	}
+
+	return client
 }

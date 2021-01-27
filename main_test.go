@@ -81,6 +81,7 @@ func TestGetHelloWorld(t *testing.T) {
 		},
 		"data": map[string]interface{}{
 			"value": "Selamat sejahtera, anas",
+			"mongo": "Online",
 		},
 	}
 	expectedResponseBody, err := json.Marshal(responseBody)
