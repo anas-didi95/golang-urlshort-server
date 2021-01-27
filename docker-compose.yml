@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
       args:
         # Update the VARIANT arg to pick a version of Go: 1, 1.15, 1.14
-        VARIANT": "1.14"
+        VARIANT: "1.15"
         # Options
         INSTALL_NODE: "false"
         NODE_VERSION: "lts/*"
@@ -23,8 +23,6 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:?MONGO_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?MONGO_PASSWORD}
-    volumes:
-      - ./mongodump:/mongodump
 
   mongo-express:
     image: mongo-express:0.54.0
