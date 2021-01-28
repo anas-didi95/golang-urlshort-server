@@ -108,7 +108,7 @@ func PostGenerateShortURL(w http.ResponseWriter, r *http.Request) {
 		"originalUrl": requestBody.URL,
 		"shortUrl":    "https://api.anasdidi.dev/urlshort/s/" + document.ShortURL,
 	}
-	sendResponse(w, http.StatusOK, responseBody, true, "Endpoint reached.")
+	sendResponse(w, http.StatusOK, responseBody, true, "Short URL generated successfully.")
 }
 
 func sendResponse(w http.ResponseWriter, statusCode int, data map[string]interface{}, isSuccess bool, message string) {

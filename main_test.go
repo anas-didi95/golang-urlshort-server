@@ -115,7 +115,7 @@ func TestPostGenerateShortURL(t *testing.T) {
 	responseBody := map[string]interface{}{
 		"status": map[string]interface{}{
 			"isSuccess": true,
-			"message":   "Endpoint reached.",
+			"message":   "Short URL generated successfully.",
 		},
 		"data": map[string]interface{}{
 			"originalUrl": "https://www.google.com",
