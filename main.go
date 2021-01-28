@@ -7,11 +7,18 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// URL Document for urls collection
+type URL struct {
+	OriginalURL string `json:"originalUrl"`
+	ShortURL    string `json:"shortUrl"`
+}
 
 func main() {
 	contextPath := mux.NewRouter().StrictSlash(true)
@@ -85,9 +92,11 @@ func PostGenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	client := getMongoConnection()
 	collection := client.Database("urlshort").Collection("urls")
 
-	_, err = collection.InsertOne(context.TODO(), map[string]interface{}{
-		"value": "test",
-	})
+	document := URL{
+		OriginalURL: requestBody.URL,
+		ShortURL:    randSeq(7),
+	}
+	_, err = collection.InsertOne(context.TODO(), document)
 	defer client.Disconnect(context.TODO())
 	if err != nil {
 		log.Fatalf("[%s] Insert mongo document failed! %v", TAG, err)
@@ -128,6 +137,8 @@ func getMongoConnection() *mongo.Client {
 func randSeq(n int) string {
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
 	b := make([]rune, n)
+
+	rand.Seed(time.Now().UnixNano())
 	for i := range b {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
