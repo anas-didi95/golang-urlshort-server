@@ -105,7 +105,8 @@ func PostGenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responseBody := map[string]interface{}{
-		"url": requestBody.URL,
+		"originalUrl": requestBody.URL,
+		"shortUrl":    "https://api.anasdidi.dev/urlshort/s/" + document.ShortURL,
 	}
 	sendResponse(w, http.StatusOK, responseBody, true, "Endpoint reached.")
 }
@@ -135,6 +136,10 @@ func getMongoConnection() *mongo.Client {
 }
 
 func randSeq(n int) string {
+	if os.Getenv("IS_TEST") == "true" {
+		return "1234567"
+	}
+
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
 	b := make([]rune, n)
 

@@ -90,6 +90,7 @@ func TestGetHelloWorld(t *testing.T) {
 }
 
 func TestPostGenerateShortURL(t *testing.T) {
+	os.Setenv("IS_TEST", "true")
 	requestBody := map[string]string{
 		"url": "https://www.google.com",
 	}
@@ -117,7 +118,8 @@ func TestPostGenerateShortURL(t *testing.T) {
 			"message":   "Endpoint reached.",
 		},
 		"data": map[string]interface{}{
-			"url": "https://www.google.com",
+			"originalUrl": "https://www.google.com",
+			"shortUrl":    "https://api.anasdidi.dev/urlshort/s/1234567",
 		},
 	}
 	expectedResponseBody, err := json.Marshal(responseBody)
@@ -127,4 +129,6 @@ func TestPostGenerateShortURL(t *testing.T) {
 		t.Errorf("handler returned unexpected body: got %v want %v",
 			assertedResponseBody, string(expectedResponseBody))
 	}
+
+	os.Unsetenv("IS_TEST")
 }
