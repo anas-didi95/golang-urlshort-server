@@ -64,6 +64,8 @@ TODO:
 
 ## References
 * [GoLang Docs](https://golangdocs.com/)
+* [How I write HTTP services after eight years](https://pace.dev/blog/2018/05/09/how-I-write-http-services-after-eight-years.html)
+* [Get JSON request body from a HTTP request in Go (Golang)](https://golangbyexample.com/json-request-body-golang-http/)
 
 ---
 

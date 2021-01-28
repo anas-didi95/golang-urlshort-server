@@ -4,19 +4,28 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// URL Document for urls collection
+type URL struct {
+	OriginalURL string `json:"originalUrl"`
+	ShortURL    string `json:"shortUrl"`
+}
+
 func main() {
 	contextPath := mux.NewRouter().StrictSlash(true)
 	router := contextPath.PathPrefix("/urlshort").Subrouter()
 
 	router.HandleFunc("/hello/{name}", GetHelloWorld).Methods(http.MethodGet)
+	router.HandleFunc("/generate", PostGenerateShortURL).Methods(http.MethodPost)
 
 	AppHost := os.Getenv("APP_HOST")
 	AppPort := os.Getenv("APP_PORT")
@@ -66,6 +75,42 @@ func GetHelloWorld(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, http.StatusOK, data, true, "Response returned successfully.")
 }
 
+// PostGenerateShortURL Generate and return short url
+func PostGenerateShortURL(w http.ResponseWriter, r *http.Request) {
+	TAG := "PostGenerateShortURL"
+
+	var requestBody struct {
+		URL string `json:"url"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	if err != nil {
+		log.Fatalf("[%s] Read request body failed! %v", TAG, err)
+		sendResponse(w, http.StatusInternalServerError, nil, false, "Read request body failed!")
+		return
+	}
+
+	client := getMongoConnection()
+	collection := client.Database("urlshort").Collection("urls")
+
+	document := URL{
+		OriginalURL: requestBody.URL,
+		ShortURL:    randSeq(7),
+	}
+	_, err = collection.InsertOne(context.TODO(), document)
+	defer client.Disconnect(context.TODO())
+	if err != nil {
+		log.Fatalf("[%s] Insert mongo document failed! %v", TAG, err)
+		sendResponse(w, http.StatusInternalServerError, nil, false, "Insert mongo document failed!")
+		return
+	}
+
+	responseBody := map[string]interface{}{
+		"originalUrl": requestBody.URL,
+		"shortUrl":    "https://api.anasdidi.dev/urlshort/s/" + document.ShortURL,
+	}
+	sendResponse(w, http.StatusOK, responseBody, true, "Short URL generated successfully.")
+}
+
 func sendResponse(w http.ResponseWriter, statusCode int, data map[string]interface{}, isSuccess bool, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
@@ -88,4 +133,19 @@ func getMongoConnection() *mongo.Client {
 	}
 
 	return client
+}
+
+func randSeq(n int) string {
+	if os.Getenv("IS_TEST") == "true" {
+		return "1234567"
+	}
+
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
+	b := make([]rune, n)
+
+	rand.Seed(time.Now().UnixNano())
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
 }
