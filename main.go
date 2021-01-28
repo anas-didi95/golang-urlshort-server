@@ -81,6 +81,19 @@ func PostGenerateShortURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	client := getMongoConnection()
+	collection := client.Database("urlshort").Collection("urls")
+
+	_, err = collection.InsertOne(context.TODO(), map[string]interface{}{
+		"value": "test",
+	})
+	defer client.Disconnect(context.TODO())
+	if err != nil {
+		log.Fatalf("[%s] Insert mongo document failed! %v", TAG, err)
+		sendResponse(w, http.StatusInternalServerError, nil, false, "Insert mongo document failed!")
+		return
+	}
+
 	responseBody := map[string]interface{}{
 		"url": requestBody.URL,
 	}
