@@ -123,8 +123,9 @@ func TestPostGenerateShortURL(t *testing.T) {
 			"message":   "Short URL generated successfully.",
 		},
 		"data": map[string]interface{}{
-			"originalUrl": "https://www.google.com",
-			"shortUrl":    "https://api.anasdidi.dev/urlshort/s/1234567",
+			"originalURL": "https://www.google.com",
+			"shortURL":    "https://api.anasdidi.dev/urlshort/s/1234567",
+			"shortID":     "1234567",
 		},
 	}
 	expectedResponseBody, err := json.Marshal(responseBody)
@@ -147,7 +148,7 @@ func TestGetRedirectShortURL(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 	router := mux.NewRouter()
-	router.HandleFunc("/urlshort/s/{shortURL}", GetRedirectShortURL)
+	router.HandleFunc("/urlshort/s/{shortID}", GetRedirectShortURL)
 	router.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusSeeOther {

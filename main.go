@@ -18,8 +18,8 @@ import (
 
 // URL Document for urls collection
 type URL struct {
-	OriginalURL string `json:"originalUrl,omitempty"`
-	ShortURL    string `json:"shortUrl,omitempty"`
+	OriginalURL string `json:"originalURL,omitempty"`
+	ShortID     string `json:"shortID,omitempty"`
 }
 
 func main() {
@@ -28,7 +28,7 @@ func main() {
 
 	router.HandleFunc("/hello/{name}", GetHelloWorld).Methods(http.MethodGet)
 	router.HandleFunc("/generate", PostGenerateShortURL).Methods(http.MethodPost)
-	router.HandleFunc("/s/{shortURL}", GetRedirectShortURL).Methods(http.MethodGet)
+	router.HandleFunc("/s/{shortID}", GetRedirectShortURL).Methods(http.MethodGet)
 
 	AppHost := os.Getenv("APP_HOST")
 	AppPort := os.Getenv("APP_PORT")
@@ -97,7 +97,7 @@ func PostGenerateShortURL(w http.ResponseWriter, r *http.Request) {
 
 	document := URL{
 		OriginalURL: requestBody.URL,
-		ShortURL:    randSeq(7),
+		ShortID:     randSeq(7),
 	}
 	_, err = collection.InsertOne(context.TODO(), document)
 	defer client.Disconnect(context.TODO())
@@ -108,8 +108,9 @@ func PostGenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responseBody := map[string]interface{}{
-		"originalUrl": requestBody.URL,
-		"shortUrl":    "https://api.anasdidi.dev/urlshort/s/" + document.ShortURL,
+		"originalURL": requestBody.URL,
+		"shortURL":    "https://api.anasdidi.dev/urlshort/s/" + document.ShortID,
+		"shortID":     document.ShortID,
 	}
 	sendResponse(w, http.StatusOK, responseBody, true, "Short URL generated successfully.")
 }
@@ -119,15 +120,15 @@ func GetRedirectShortURL(w http.ResponseWriter, r *http.Request) {
 	TAG := "GetRedirectShortURL"
 
 	vars := mux.Vars(r)
-	shortURL := vars["shortURL"]
-	if len(shortURL) == 0 {
-		log.Fatalf("[%s] Short URL not sent!", TAG)
-		sendResponse(w, http.StatusInternalServerError, nil, false, "Short URL not sent!")
+	shortID := vars["shortID"]
+	if len(shortID) == 0 {
+		log.Fatalf("[%s] Short ID not sent!", TAG)
+		sendResponse(w, http.StatusInternalServerError, nil, false, "Short ID not sent!")
 		return
 	}
 
 	client := getMongoConnection()
-	filter := bson.D{primitive.E{Key: "shorturl", Value: shortURL}}
+	filter := bson.D{primitive.E{Key: "shortid", Value: shortID}}
 	var URL URL
 	err := client.Database("urlshort").Collection("urls").FindOne(context.TODO(), filter).Decode(&URL)
 	if err != nil {
