@@ -43,6 +43,11 @@ func TestPingMongoClient(t *testing.T) {
 		t.Errorf("Mongo client ping failed! %v", err)
 	}
 
+	err = client.Database("urlshort").Drop(context.TODO())
+	if err != nil {
+		t.Errorf("Mongo client drop database failed! %v", err)
+	}
+
 	defer client.Disconnect(context.TODO())
 }
 

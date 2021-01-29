@@ -10,14 +10,16 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // URL Document for urls collection
 type URL struct {
-	OriginalURL string `json:"originalUrl"`
-	ShortURL    string `json:"shortUrl"`
+	OriginalURL string `json:"originalUrl,omitempty"`
+	ShortURL    string `json:"shortUrl,omitempty"`
 }
 
 func main() {
@@ -114,7 +116,28 @@ func PostGenerateShortURL(w http.ResponseWriter, r *http.Request) {
 
 // GetRedirectShortURL Redirect short URL
 func GetRedirectShortURL(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusInternalServerError)
+	TAG := "GetRedirectShortURL"
+
+	vars := mux.Vars(r)
+	shortURL := vars["shortURL"]
+	if len(shortURL) == 0 {
+		log.Fatalf("[%s] Short URL not sent!", TAG)
+		sendResponse(w, http.StatusInternalServerError, nil, false, "Short URL not sent!")
+		return
+	}
+
+	client := getMongoConnection()
+	filter := bson.D{primitive.E{Key: "shorturl", Value: shortURL}}
+	var URL URL
+	err := client.Database("urlshort").Collection("urls").FindOne(context.TODO(), filter).Decode(&URL)
+	if err != nil {
+		log.Fatalf("[%s] Get mongo document failed! %v", TAG, err)
+		sendResponse(w, http.StatusInternalServerError, nil, false, "Get mongo document failed!")
+		return
+	}
+	defer client.Disconnect(context.TODO())
+
+	http.Redirect(w, r, URL.OriginalURL, http.StatusSeeOther)
 }
 
 func sendResponse(w http.ResponseWriter, statusCode int, data map[string]interface{}, isSuccess bool, message string) {
