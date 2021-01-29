@@ -132,3 +132,23 @@ func TestPostGenerateShortURL(t *testing.T) {
 
 	os.Unsetenv("IS_TEST")
 }
+
+func TestGetRedirectShortURL(t *testing.T) {
+	os.Setenv("IS_TEST", "true")
+	req, err := http.NewRequest(http.MethodGet, "/urlshort/s/1234567", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	router := mux.NewRouter()
+	router.HandleFunc("/urlshort/s/{shortURL}", GetRedirectShortURL)
+	router.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusSeeOther {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusSeeOther)
+	}
+
+	os.Unsetenv("IS_TEST")
+}

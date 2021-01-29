@@ -26,6 +26,7 @@ func main() {
 
 	router.HandleFunc("/hello/{name}", GetHelloWorld).Methods(http.MethodGet)
 	router.HandleFunc("/generate", PostGenerateShortURL).Methods(http.MethodPost)
+	router.HandleFunc("/s/{shortURL}", GetRedirectShortURL).Methods(http.MethodGet)
 
 	AppHost := os.Getenv("APP_HOST")
 	AppPort := os.Getenv("APP_PORT")
@@ -109,6 +110,11 @@ func PostGenerateShortURL(w http.ResponseWriter, r *http.Request) {
 		"shortUrl":    "https://api.anasdidi.dev/urlshort/s/" + document.ShortURL,
 	}
 	sendResponse(w, http.StatusOK, responseBody, true, "Short URL generated successfully.")
+}
+
+// GetRedirectShortURL Redirect short URL
+func GetRedirectShortURL(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusInternalServerError)
 }
 
 func sendResponse(w http.ResponseWriter, statusCode int, data map[string]interface{}, isSuccess bool, message string) {
