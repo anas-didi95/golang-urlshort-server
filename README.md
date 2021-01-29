@@ -1,5 +1,9 @@
 # URL shortener webservice
 
+![build](https://github.com/anas-didi95/golang-urlshort-server/workflows/build/badge.svg)
+
+---
+
 ## Table of contents
 * [General info](#general-info)
 * [Technologies](#technologies)
@@ -56,8 +60,9 @@ go run main.go
 ---
 
 ## Features
-TODO:
 * Generate short url.
+
+TODO:
 * Open short url based on given generated short url.
 
 ---
