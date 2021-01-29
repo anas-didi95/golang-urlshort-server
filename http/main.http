@@ -17,3 +17,10 @@ Content-Type: application/json
 {
   "url": "https://anasdidi.dev"
 }
+
+###
+
+// @name GetRedirectShortURL
+GET {{baseUrl}}/s/{{PostGenerateShortURL.response.body.$.data.shortID}}
+Accept: application/json
+Content-Type: application/json
