@@ -32,7 +32,8 @@ Following table is a **mandatory** environment variables used in this project.
 | --- | --- | --- |
 | APP_HOST | String | Server host |
 | APP_PORT | Number | Server port |
-| MONGO_CONNECTION_STRING | String | Mongo connection string (refer [doc](https://docs.mongodb.com/manual/reference/connection-string/) for example)
+| MONGO_CONNECTION_STRING | String | Mongo connection string (refer [doc](https://docs.mongodb.com/manual/reference/connection-string/) for example) |
+| BASE_URL | String | Base URL for the endpoint |
 
 ---
 
@@ -61,8 +62,6 @@ go run main.go
 
 ## Features
 * Generate short url.
-
-TODO:
 * Open short url based on given generated short url.
 
 ---

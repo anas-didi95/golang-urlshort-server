@@ -30,6 +30,11 @@ func TestGetEnvVar(t *testing.T) {
 	if len(MongoConnectionString) == 0 {
 		t.Errorf("Env var not defined! key %s", "MONGO_CONNECTION_STRING")
 	}
+
+	BaseURL := os.Getenv("BASE_URL")
+	if len(BaseURL) == 0 {
+		t.Errorf("Env var not defined! key %s", "BASE_URL")
+	}
 }
 
 func TestPingMongoClient(t *testing.T) {
@@ -41,6 +46,11 @@ func TestPingMongoClient(t *testing.T) {
 	err = client.Ping(context.TODO(), nil)
 	if err != nil {
 		t.Errorf("Mongo client ping failed! %v", err)
+	}
+
+	err = client.Database("urlshort").Drop(context.TODO())
+	if err != nil {
+		t.Errorf("Mongo client drop database failed! %v", err)
 	}
 
 	defer client.Disconnect(context.TODO())
@@ -118,8 +128,9 @@ func TestPostGenerateShortURL(t *testing.T) {
 			"message":   "Short URL generated successfully.",
 		},
 		"data": map[string]interface{}{
-			"originalUrl": "https://www.google.com",
-			"shortUrl":    "https://api.anasdidi.dev/urlshort/s/1234567",
+			"originalURL": "https://www.google.com",
+			"shortURL":    os.Getenv("BASE_URL") + "/s/1234567",
+			"shortID":     "1234567",
 		},
 	}
 	expectedResponseBody, err := json.Marshal(responseBody)
@@ -128,6 +139,26 @@ func TestPostGenerateShortURL(t *testing.T) {
 	if assertedResponseBody != string(expectedResponseBody) {
 		t.Errorf("handler returned unexpected body: got %v want %v",
 			assertedResponseBody, string(expectedResponseBody))
+	}
+
+	os.Unsetenv("IS_TEST")
+}
+
+func TestGetRedirectShortURL(t *testing.T) {
+	os.Setenv("IS_TEST", "true")
+	req, err := http.NewRequest(http.MethodGet, "/urlshort/s/1234567", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	router := mux.NewRouter()
+	router.HandleFunc("/urlshort/s/{shortID}", GetRedirectShortURL)
+	router.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusSeeOther {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusSeeOther)
 	}
 
 	os.Unsetenv("IS_TEST")
