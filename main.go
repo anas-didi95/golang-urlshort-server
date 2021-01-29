@@ -109,7 +109,7 @@ func PostGenerateShortURL(w http.ResponseWriter, r *http.Request) {
 
 	responseBody := map[string]interface{}{
 		"originalURL": requestBody.URL,
-		"shortURL":    "https://api.anasdidi.dev/urlshort/s/" + document.ShortID,
+		"shortURL":    os.Getenv("BASE_URL") + "/s/" + document.ShortID,
 		"shortID":     document.ShortID,
 	}
 	sendResponse(w, http.StatusOK, responseBody, true, "Short URL generated successfully.")

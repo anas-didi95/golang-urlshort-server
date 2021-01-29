@@ -30,6 +30,11 @@ func TestGetEnvVar(t *testing.T) {
 	if len(MongoConnectionString) == 0 {
 		t.Errorf("Env var not defined! key %s", "MONGO_CONNECTION_STRING")
 	}
+
+	BaseURL := os.Getenv("BASE_URL")
+	if len(BaseURL) == 0 {
+		t.Errorf("Env var not defined! key %s", "BASE_URL")
+	}
 }
 
 func TestPingMongoClient(t *testing.T) {
@@ -124,7 +129,7 @@ func TestPostGenerateShortURL(t *testing.T) {
 		},
 		"data": map[string]interface{}{
 			"originalURL": "https://www.google.com",
-			"shortURL":    "https://api.anasdidi.dev/urlshort/s/1234567",
+			"shortURL":    os.Getenv("BASE_URL") + "/s/1234567",
 			"shortID":     "1234567",
 		},
 	}
