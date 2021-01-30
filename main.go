@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -201,9 +202,14 @@ func setupMongoDatabase() {
 
 	client.Database("urlshort").Collection("urls").Indexes().DropAll(context.TODO())
 
+	expireAfterSeconds, err := strconv.Atoi(os.Getenv("SHORT_URL_EXPIRE_IN_SECONDS"))
+	if err != nil {
+		log.Fatalf("[%s][%s] Last Modified Date TTL value not defined!", TAG, "urls")
+	}
+
 	idxLastModifiedDateTTL := mongo.IndexModel{Keys: bson.M{
 		"lastmodifieddate": 1,
-	}, Options: options.Index().SetExpireAfterSeconds(1 * 24 * 60 * 60).SetName("ttl_lastmodifieddate")}
+	}, Options: options.Index().SetExpireAfterSeconds(int32(expireAfterSeconds)).SetName("ttl_lastmodifieddate")}
 	client.Database("urlshort").Collection("urls").Indexes().CreateOne(context.TODO(), idxLastModifiedDateTTL)
 	log.Printf("[%s][%s] Index ttl_lastmodifieddate created successfully", TAG, "urls")
 
