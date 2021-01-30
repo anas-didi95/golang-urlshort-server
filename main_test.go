@@ -35,6 +35,11 @@ func TestGetEnvVar(t *testing.T) {
 	if len(BaseURL) == 0 {
 		t.Errorf("Env var not defined! key %s", "BASE_URL")
 	}
+
+	ShortURLExpireInSeconds := os.Getenv("SHORT_URL_EXPIRE_IN_SECONDS")
+	if len(ShortURLExpireInSeconds) == 0 {
+		t.Errorf("Env var not defined! key %s", "SHORT_URL_EXPIRE_IN_SECONDS")
+	}
 }
 
 func TestPingMongoClient(t *testing.T) {

@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -18,11 +19,14 @@ import (
 
 // URL Document for urls collection
 type URL struct {
-	OriginalURL string `json:"originalURL,omitempty"`
-	ShortID     string `json:"shortID,omitempty"`
+	OriginalURL      string    `json:"originalURL,omitempty"`
+	ShortID          string    `json:"shortID,omitempty"`
+	LastModifiedDate time.Time `json:"lastModifiedDate"`
 }
 
 func main() {
+	setupMongoDatabase()
+
 	contextPath := mux.NewRouter().StrictSlash(true)
 	router := contextPath.PathPrefix("/urlshort").Subrouter()
 
@@ -96,8 +100,9 @@ func PostGenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	collection := client.Database("urlshort").Collection("urls")
 
 	document := URL{
-		OriginalURL: requestBody.URL,
-		ShortID:     randSeq(7),
+		OriginalURL:      requestBody.URL,
+		ShortID:          randSeq(7),
+		LastModifiedDate: time.Now(),
 	}
 	_, err = collection.InsertOne(context.TODO(), document)
 	defer client.Disconnect(context.TODO())
@@ -178,4 +183,44 @@ func randSeq(n int) string {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(b)
+}
+
+func setupMongoDatabase() {
+	TAG := "setupMongoDatabase"
+
+	client := getMongoConnection()
+	collections, err := client.Database("urlshort").ListCollectionNames(context.TODO(), bson.D{{}})
+	if err != nil {
+		log.Fatalf("[%s] Get collection names failed! %v", TAG, err)
+	}
+
+	hasURLS := contains(collections, "urls")
+	if !hasURLS {
+		client.Database("urlshort").CreateCollection(context.TODO(), "urls")
+		log.Printf("[%s] Collection urls created successfully", TAG)
+	}
+
+	client.Database("urlshort").Collection("urls").Indexes().DropAll(context.TODO())
+
+	expireAfterSeconds, err := strconv.Atoi(os.Getenv("SHORT_URL_EXPIRE_IN_SECONDS"))
+	if err != nil {
+		log.Fatalf("[%s][%s] Last Modified Date TTL value not defined!", TAG, "urls")
+	}
+
+	idxLastModifiedDateTTL := mongo.IndexModel{Keys: bson.M{
+		"lastmodifieddate": 1,
+	}, Options: options.Index().SetExpireAfterSeconds(int32(expireAfterSeconds)).SetName("ttl_lastmodifieddate")}
+	client.Database("urlshort").Collection("urls").Indexes().CreateOne(context.TODO(), idxLastModifiedDateTTL)
+	log.Printf("[%s][%s] Index ttl_lastmodifieddate created successfully", TAG, "urls")
+
+	defer client.Disconnect(context.TODO())
+}
+
+func contains(arr []string, str string) bool {
+	for _, a := range arr {
+		if a == str {
+			return true
+		}
+	}
+	return false
 }
