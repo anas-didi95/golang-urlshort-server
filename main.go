@@ -18,8 +18,9 @@ import (
 
 // URL Document for urls collection
 type URL struct {
-	OriginalURL string `json:"originalURL,omitempty"`
-	ShortID     string `json:"shortID,omitempty"`
+	OriginalURL      string    `json:"originalURL,omitempty"`
+	ShortID          string    `json:"shortID,omitempty"`
+	LastModifiedDate time.Time `json:"lastModifiedDate"`
 }
 
 func main() {
@@ -96,8 +97,9 @@ func PostGenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	collection := client.Database("urlshort").Collection("urls")
 
 	document := URL{
-		OriginalURL: requestBody.URL,
-		ShortID:     randSeq(7),
+		OriginalURL:      requestBody.URL,
+		ShortID:          randSeq(7),
+		LastModifiedDate: time.Now(),
 	}
 	_, err = collection.InsertOne(context.TODO(), document)
 	defer client.Disconnect(context.TODO())
