@@ -24,6 +24,8 @@ type URL struct {
 }
 
 func main() {
+	setupMongoDatabase()
+
 	contextPath := mux.NewRouter().StrictSlash(true)
 	router := contextPath.PathPrefix("/urlshort").Subrouter()
 
@@ -180,4 +182,39 @@ func randSeq(n int) string {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(b)
+}
+
+func setupMongoDatabase() {
+	TAG := "setupMongoDatabase"
+
+	client := getMongoConnection()
+	collections, err := client.Database("urlshort").ListCollectionNames(context.TODO(), bson.D{{}})
+	if err != nil {
+		log.Fatalf("[%s] Get collection names failed! %v", TAG, err)
+	}
+
+	hasURLS := contains(collections, "urls")
+	if !hasURLS {
+		client.Database("urlshort").CreateCollection(context.TODO(), "urls")
+		log.Printf("[%s] Collection urls created successfully", TAG)
+	}
+
+	client.Database("urlshort").Collection("urls").Indexes().DropAll(context.TODO())
+
+	idxLastModifiedDateTTL := mongo.IndexModel{Keys: bson.M{
+		"lastmodifieddate": 1,
+	}, Options: options.Index().SetExpireAfterSeconds(1 * 24 * 60 * 60).SetName("ttl_lastmodifieddate")}
+	client.Database("urlshort").Collection("urls").Indexes().CreateOne(context.TODO(), idxLastModifiedDateTTL)
+	log.Printf("[%s][%s] Index ttl_lastmodifieddate created successfully", TAG, "urls")
+
+	defer client.Disconnect(context.TODO())
+}
+
+func contains(arr []string, str string) bool {
+	for _, a := range arr {
+		if a == str {
+			return true
+		}
+	}
+	return false
 }
