@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -34,10 +35,16 @@ func main() {
 	router.HandleFunc("/generate", PostGenerateShortURL).Methods(http.MethodPost)
 	router.HandleFunc("/s/{shortID}", GetRedirectShortURL).Methods(http.MethodGet)
 
+	corsConfig := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET", "POST"},
+	})
+	handler := corsConfig.Handler(contextPath)
+
 	AppHost := os.Getenv("APP_HOST")
 	AppPort := os.Getenv("APP_PORT")
 	log.Printf("[main] Server started at %s:%s", AppHost, AppPort)
-	log.Fatal(http.ListenAndServe(AppHost+":"+AppPort, router))
+	log.Fatal(http.ListenAndServe(AppHost+":"+AppPort, handler))
 }
 
 // GetHelloWorld Return greeting based on name and language given
