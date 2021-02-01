@@ -1,6 +1,7 @@
 # URL shortener webservice
 
 ![build](https://github.com/anas-didi95/golang-urlshort-server/workflows/build/badge.svg)
+![deploy](https://github.com/anas-didi95/golang-urlshort-server/workflows/deploy/badge.svg)
 
 ---
 
