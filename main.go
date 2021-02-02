@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -98,8 +99,14 @@ func PostGenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	}
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
-		log.Fatalf("[%s] Read request body failed! %v", TAG, err)
+		log.Printf("[%s] ERROR :: Read request body failed! %v", TAG, err)
 		sendResponse(w, http.StatusInternalServerError, nil, false, "Read request body failed!")
+		return
+	}
+
+	if !isValidURL(requestBody.URL) {
+		log.Printf("[%s] ERROR :: Requested URL is invalid! URL=%s", TAG, requestBody.URL)
+		sendResponse(w, http.StatusInternalServerError, nil, false, "Requested URL is invalid!")
 		return
 	}
 
@@ -114,7 +121,7 @@ func PostGenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	_, err = collection.InsertOne(context.TODO(), document)
 	defer client.Disconnect(context.TODO())
 	if err != nil {
-		log.Fatalf("[%s] Insert mongo document failed! %v", TAG, err)
+		log.Printf("[%s] ERROR :: Insert mongo document failed! %v", TAG, err)
 		sendResponse(w, http.StatusInternalServerError, nil, false, "Insert mongo document failed!")
 		return
 	}
@@ -134,7 +141,7 @@ func GetRedirectShortURL(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	shortID := vars["shortID"]
 	if len(shortID) == 0 {
-		log.Fatalf("[%s] Short ID not sent!", TAG)
+		log.Printf("[%s] ERROR :: Short ID not sent!", TAG)
 		sendResponse(w, http.StatusInternalServerError, nil, false, "Short ID not sent!")
 		return
 	}
@@ -144,7 +151,7 @@ func GetRedirectShortURL(w http.ResponseWriter, r *http.Request) {
 	var URL URL
 	err := client.Database("urlshort").Collection("urls").FindOne(context.TODO(), filter).Decode(&URL)
 	if err != nil {
-		log.Fatalf("[%s] Get mongo document failed! %v", TAG, err)
+		log.Printf("[%s] ERROR :: Get mongo document failed! %v", TAG, err)
 		sendResponse(w, http.StatusInternalServerError, nil, false, "Get mongo document failed!")
 		return
 	}
@@ -198,7 +205,7 @@ func setupMongoDatabase() {
 	client := getMongoConnection()
 	collections, err := client.Database("urlshort").ListCollectionNames(context.TODO(), bson.D{{}})
 	if err != nil {
-		log.Fatalf("[%s] Get collection names failed! %v", TAG, err)
+		log.Printf("[%s] ERROR :: Get collection names failed! %v", TAG, err)
 	}
 
 	hasURLS := contains(collections, "urls")
@@ -230,4 +237,18 @@ func contains(arr []string, str string) bool {
 		}
 	}
 	return false
+}
+
+func isValidURL(toTest string) bool {
+	_, err := url.ParseRequestURI(toTest)
+	if err != nil {
+		return false
+	}
+
+	u, err := url.Parse(toTest)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return false
+	}
+
+	return true
 }
