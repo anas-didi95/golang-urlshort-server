@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -54,8 +55,9 @@ func TestPingMongoClient(t *testing.T) {
 	}
 
 	err = client.Database("urlshort").Drop(context.TODO())
+	_, err = client.Database("urlshort").Collection("urls").DeleteMany(context.TODO(), bson.D{{}})
 	if err != nil {
-		t.Errorf("Mongo client drop database failed! %v", err)
+		t.Errorf("Mongo client collection delete many failed! %v", err)
 	}
 
 	defer client.Disconnect(context.TODO())
@@ -104,7 +106,7 @@ func TestGetHelloWorld(t *testing.T) {
 	}
 }
 
-func TestPostGenerateShortURL(t *testing.T) {
+func TestPostGenerateShortURLSuccess(t *testing.T) {
 	os.Setenv("IS_TEST", "true")
 	requestBody := map[string]string{
 		"url": "https://www.google.com",
@@ -137,6 +139,47 @@ func TestPostGenerateShortURL(t *testing.T) {
 			"shortURL":    os.Getenv("BASE_URL") + "/s/1234567",
 			"shortID":     "1234567",
 		},
+	}
+	expectedResponseBody, err := json.Marshal(responseBody)
+	assertedResponseBody := strings.Trim(rr.Body.String(), "\n")
+
+	if assertedResponseBody != string(expectedResponseBody) {
+		t.Errorf("handler returned unexpected body: got %v want %v",
+			assertedResponseBody, string(expectedResponseBody))
+	}
+
+	os.Unsetenv("IS_TEST")
+}
+
+func TestPostGenerateShortURLErrorURLInvalid(t *testing.T) {
+	os.Setenv("IS_TEST", "true")
+	requestBody := map[string]string{
+		"url": "test",
+	}
+	var buf bytes.Buffer
+	json.NewEncoder(&buf).Encode(requestBody)
+
+	req, err := http.NewRequest(http.MethodPost, "/urlshort/generate", &buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	router := mux.NewRouter()
+	router.HandleFunc("/urlshort/generate", PostGenerateShortURL)
+	router.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	responseBody := map[string]interface{}{
+		"status": map[string]interface{}{
+			"isSuccess": false,
+			"message":   "Requested URL is invalid!",
+		},
+		"data": nil,
 	}
 	expectedResponseBody, err := json.Marshal(responseBody)
 	assertedResponseBody := strings.Trim(rr.Body.String(), "\n")
