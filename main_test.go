@@ -169,9 +169,9 @@ func TestPostGenerateShortURLErrorURLInvalid(t *testing.T) {
 	router.HandleFunc("/urlshort/generate", PostGenerateShortURL)
 	router.ServeHTTP(rr, req)
 
-	if status := rr.Code; status != http.StatusOK {
+	if status := rr.Code; status != http.StatusInternalServerError {
 		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
+			status, http.StatusInternalServerError)
 	}
 
 	responseBody := map[string]interface{}{
