@@ -25,6 +25,6 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v2
       - name: Run build
-        run: go build .
+        run: CGO_ENABLED=0 go build -a -installsuffix cgo .
       - name: Run vet
         run: go vet .
